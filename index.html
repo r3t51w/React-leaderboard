@@ -1,0 +1,112 @@
+<html>
+<head>
+  <script src="https://fb.me/react-15.0.2.min.js"></script>
+  <script src="https://fb.me/react-dom-15.0.2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <script src='https://code.jquery.com/jquery-2.2.3.min.js'></script>
+  <link rel="stylesheet" type="text/css" href="stylesheet.css">
+  
+</head>
+<body>
+  <div id="example"></div>
+    <script type="text/babel">
+
+    var BodyTable = React.createClass({
+      render: function(){
+        //console.log(this.props.tableList);
+        return(
+        <div className='row'>
+            <div className='leaderboard'>Leaderboard
+            </div>
+            <div className='tab'>
+
+            <table className='table table-striped'>
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Camper Name</th>
+                <th id='lastThirty' onClick={this.props.pastMonth} className='sort sorted'>Post in last 30 days</th>
+                <th id='allT' onClick={this.props.allTime} className='sort'>All time posts</th>
+              </tr>
+              </thead>
+              <tbody>
+                {this.props.tableList.map(function(data,index){
+                  //console.log(data);
+                  return(
+                  <tr>
+                      <td id='index'>{index+1}</td>
+                      <td className='usr'><a href={"www.freecodecamp.com/"+data.username}>
+                        <img className='thumbnail' src={data.img}/>
+                        <span>{data.username}</span></a></td>
+                      <td>{data.recent}</td>
+                      <td>{data.alltime}</td>
+                  </tr>
+                  );
+
+                })}
+              </tbody>
+            </table>
+            </div>
+         </div>
+        );
+      }
+    });
+    var LeaderBoard = React.createClass({
+
+      getInitialState: function(){
+        return({
+          list: [],
+          url:''
+        });
+      },
+      componentDidMount: function(){
+        this.serverRequest = $.get('http://fcctop100.herokuapp.com/api/fccusers/top/recent',function(res){
+          var list = res;
+          //console.log(list);
+          this.setState({
+            list: list
+          });
+        }.bind(this));
+      },
+      componentWillUnmount: function(){
+        this.serverRequest.abort();
+      },
+      allTime: function(){
+        $('#allT').addClass('sorted');
+        $('#lastThirty').removeClass('sorted');
+        $.get('http://fcctop100.herokuapp.com/api/fccusers/top/alltime',function(res){
+          var list = res;
+          this.setState({
+            list: list
+          });
+        }.bind(this));
+      },
+      pastMonth: function(){
+        $('#lastThirty').addClass('sorted');
+        $('#allT').removeClass('sorted');
+        $.get('http://fcctop100.herokuapp.com/api/fccusers/top/recent',function(res){
+          var list = res;
+          this.setState({
+            list: list
+          });
+        }.bind(this));
+      },
+      render: function(){
+        return(
+          <div>
+
+            <BodyTable tableList={this.state.list} allTime={this.allTime} pastMonth={this.pastMonth}/>
+
+          </div>
+        );
+
+      }
+    });
+    ReactDOM.render(<LeaderBoard />, document.getElementById('container'));
+
+    </script>
+  <div className='container' id='container'></div>
+</body>
+</html>
